@@ -3,10 +3,18 @@ import uuid
 import os
 from config import WEB_UPLOADDIR
 from jwt import decode
+from app import app
 from core.models import ServerMode
 
 def run_cmd(cmd):
   return os.popen(cmd).read()
+
+def run_argv(argv):
+  import subprocess
+  try:
+    return subprocess.run(argv, capture_output=True, text=True, timeout=60).stdout
+  except Exception as e:
+    return str(e)
 
 def initialize():
   return run_cmd('python3 setup.py')
@@ -18,15 +26,20 @@ def decode_base64(text):
   return base64.b64decode(text).decode('utf-8')
 
 def get_identity(token):
-  return decode(token, options={"verify_signature":False, "verify_exp":False}).get('identity')
+  return decode(token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"], options={"verify_exp":False}).get('identity')
 
 def save_file(filename, text):
   try:
-    f = open(WEB_UPLOADDIR + filename, 'w')
+    filename = os.path.basename(filename)
+    filepath = os.path.join(WEB_UPLOADDIR, filename)
+    if os.path.dirname(os.path.abspath(filepath)) != os.path.abspath(WEB_UPLOADDIR):
+      return 'Filename is not allowed'
+    f = open(filepath, 'w')
     f.write(text)
     f.close()
   except Exception as e:
-    text = str(e)
+    print('File upload failed: {}'.format(e))
+    text = 'File upload failed.'
   return text
 
 def is_level_easy():

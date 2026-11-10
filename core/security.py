@@ -34,7 +34,10 @@ def allowed_cmds(cmd):
   if helpers.is_level_easy():
     return True
   elif helpers.is_level_hard():
-    if cmd.startswith(('echo', 'ps' 'whoami', 'tail')):
+    if any(ch in cmd for ch in (';', '&', '|', '`', '$', '\\', '>', '<', '(', ')', '\n')):
+      return False
+    parts = cmd.split()
+    if parts and parts[0] in ('echo', 'ps', 'whoami', 'tail'):
       return True
   return False
 

@@ -59,7 +59,7 @@ class UserObject(SQLAlchemyObjectType):
 
   @staticmethod
   def resolve_password(self, info, **kwargs):
-    if info.context.json.get('identity') == 'admin':
+    if getattr(request, 'dvga_identity', None) == 'admin':
       return self.password
     else:
       return '******'
@@ -207,8 +207,10 @@ class ImportPaste(graphene.Mutation):
     scheme = graphene.String(required=True)
 
   def mutate(self, info, host='pastebin.com', port=443, path='/', scheme="http"):
-    url = security.strip_dangerous_characters(f"{scheme}://{host}:{port}{path}")
-    cmd = helpers.run_cmd(f'curl --insecure {url}')
+    if scheme not in ('http', 'https'):
+      raise GraphQLError('Invalid scheme')
+    url = f"{scheme}://{host}:{port}{path}"
+    cmd = helpers.run_argv(['curl', '--insecure', '--', url])
 
     owner = Owner.query.filter_by(name='DVGAUser').first()
     Paste.create_paste(
@@ -259,7 +261,7 @@ class Subscription(graphene.ObjectType):
   paste = graphene.Field(PasteObject, id=graphene.Int(), title=graphene.String())
 
   def resolve_paste(self, info):
-    return global_event.map(lambda i: i)
+    return global_event.filter(lambda paste: bool(paste.public) and not paste.burn)
 
 class SearchResult(graphene.Union):
   class Meta:
@@ -288,7 +290,7 @@ class Query(graphene.ObjectType):
     if info.context.json == None:
       raise GraphQLError("JSON payload was not found.")
 
-    info.context.json['identity'] = identity
+    request.dvga_identity = identity
 
     query = UserObject.get_query(info)
 

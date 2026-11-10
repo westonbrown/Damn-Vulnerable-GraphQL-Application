@@ -32,7 +32,7 @@ class DepthProtectionMiddleware(object):
         depth = parser.get_depth(query)
 
       elif mutation:
-        depth = parser.get_depth(query)
+        depth = parser.get_depth(mutation)
 
       if security.depth_exceeded(depth):
         raise werkzeug.exceptions.SecurityError('Query Depth Exceeded! Deep Recursion Attack Detected.')
@@ -103,7 +103,6 @@ class processMiddleware(object):
     return next(root, info, **kwargs)
 
 class IntrospectionMiddleware(object):
-  @run_only_once
   def resolve(self, next, root, info, **kwargs):
     if helpers.is_level_easy():
       return next(root, info, **kwargs)
@@ -119,8 +118,8 @@ class IGQLProtectionMiddleware(object):
     if helpers.is_level_hard():
       raise werkzeug.exceptions.SecurityError('GraphiQL is disabled')
 
-    cookie = request.cookies.get('env')
-    if cookie and cookie == 'graphiql:enable':
+    # Access is decided server-side; a client-set cookie is never trusted.
+    if helpers.is_level_easy():
       return next(root, info, **kwargs)
 
     raise werkzeug.exceptions.SecurityError('GraphiQL Access Rejected')

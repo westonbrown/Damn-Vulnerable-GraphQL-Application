@@ -46,7 +46,7 @@ class Audit(db.Model):
     """
     if subscription_type and isinstance(info, str):
       """Subscriptions"""
-      gql_query = info
+      gql_query = clean_query(info)
       ast = parse(gql_query)
 
       try:

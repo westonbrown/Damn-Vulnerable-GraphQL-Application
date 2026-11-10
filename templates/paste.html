@@ -41,6 +41,15 @@
       COMPLETE: 'complete'
     }
 
+    function escapeHtml(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function subscribeToPastes() {
 
         var exampleSocket = new WebSocket("ws://{{host}}:{{port}}/subscriptions");
@@ -63,14 +72,14 @@
 
 
           var pasteHTML = `<div class="card-header">
-              <i class="fa fa-paste"></i> &nbsp; ${paste.title}
+              <i class="fa fa-paste"></i> &nbsp; ${escapeHtml(paste.title)}
             </div>
             <div class="card-body">
               <p class="card-text">
-              <pre>${paste.content}</pre>
+              <pre>${escapeHtml(paste.content)}</pre>
               <br><hr />
               <i class="fa fa-user"></i>
-              <i><small><b>${paste.owner.name}</b><br>- ${paste.ipAddr}<br>- (${paste.userAgent})</small></i></p>
+              <i><small><b>${escapeHtml(paste.owner && paste.owner.name)}</b><br>- ${escapeHtml(paste.ipAddr)}<br>- (${escapeHtml(paste.userAgent)})</small></i></p>
             </div>`
 
           if(paste.public){
@@ -131,27 +140,27 @@
             if(page_public){
               $("#public_gallery").append(
                 `<div class="card-header">
-                  <i class="fa fa-paste"></i> &nbsp; ${title}
+                  <i class="fa fa-paste"></i> &nbsp; ${escapeHtml(title)}
                 </div>
                 <div class="card-body">
                   <p class="card-text">
-                  <pre>${content}</pre>
+                  <pre>${escapeHtml(content)}</pre>
                   <br><hr />
                   <i class="fa fa-user"></i>
-                  <i><small><b>${owner}</b><br>- ${ip_addr}<br>- (${uas})</small></i></p>
+                  <i><small><b>${escapeHtml(owner)}</b><br>- ${escapeHtml(ip_addr)}<br>- (${escapeHtml(uas)})</small></i></p>
                 </div>`
               )
             } else {
               $("#private_gallery").append(
                 `<div class="card-header">
-                  <i class="fa fa-paste"></i> &nbsp; ${title}
+                  <i class="fa fa-paste"></i> &nbsp; ${escapeHtml(title)}
                 </div>
                 <div class="card-body">
                   <p class="card-text">
-                  <pre>${content}</pre>
+                  <pre>${escapeHtml(content)}</pre>
                   <br><hr />
                   <i class="fa fa-user"></i>
-                  <i><small><b>${owner}</b><br>- ${ip_addr}<br>- (${uas})</small></i></p>
+                  <i><small><b>${escapeHtml(owner)}</b><br>- ${escapeHtml(ip_addr)}<br>- (${escapeHtml(uas)})</small></i></p>
                 </div>`
               )
             }
